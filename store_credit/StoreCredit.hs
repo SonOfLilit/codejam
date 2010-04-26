@@ -6,14 +6,7 @@ type Case = (Int, [Int])
 type Solution = (Int, Int)
 
 main :: IO ()
-main = do
-    inputString <- getContents
-    let input :: [Case]
-        input = tryParse parseInput inputString
-        solutions :: [Solution]
-        solutions = map solve input
-        solutionStrs = zipWith (++) prefixes (map formatSolution solutions)
-    putStr $ unlines solutionStrs
+main = interact (unlines . zipWith (++) prefixes . map formatSolution . map solve . tryParse parseInput)
 
 solve :: Case -> Solution
 solve (credit, items) = let (first : rest) = items
