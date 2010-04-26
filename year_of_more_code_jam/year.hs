@@ -9,6 +9,7 @@ type Tournament = [Days]
 
 data Case = Case Days [Tournament]
 data Solution = Solution (Ratio Integer)
+instance Show Solution where show=formatSolution
 
 main :: IO ()
 main = interact (unlines . zipWith (++) prefixes . map formatSolution . map solve . tryParse parseInput)
@@ -16,13 +17,18 @@ main = interact (unlines . zipWith (++) prefixes . map formatSolution . map solv
 prefixes = [ "Case #" ++ show n ++ ": " | n <- [1..]]
 
 solve :: Case -> Solution
-solve (Case days [tournament]) = Solution $ (toInteger $ sum (map happinessWhenAt [0..(days-1)])) % days
+solve (Case days [tournament]) = Solution $ (toInteger $ sum (map happinessWhenAt [0..days-1])) % days
     where happinessWhenAt day = length $ filter (roundOccurs day) tournament
           roundOccurs day round = day + round < days
 -- TODO: Multiple tournaments
 solve (Case _ _) = Solution (0 % 1)
 
-formatSolution (Solution x) = show x
+formatSolution (Solution r) = show x ++ "+" ++ show y ++ "/" ++ show z
+    where a = numerator r
+          b = denominator r
+          x = div a b
+          y = mod a b
+          z = b
 
 number = many1 digit
 br = char '\n'
@@ -53,4 +59,4 @@ parseTournament = do
 parseRound = do
     space
     d <- number
-    return $ read d
+    return $ (read d) - 1
