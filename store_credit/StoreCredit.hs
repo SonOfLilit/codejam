@@ -2,8 +2,8 @@ module Main where
 import List
 import Text.ParserCombinators.Parsec
 
-type Case = (Int, [Int])
-type Solution = (Int, Int)
+type Case = (Integer, [Integer])
+type Solution = (Integer, Integer)
 
 main :: IO ()
 main = interact (unlines . zipWith (++) prefixes . map formatSolution . map solve . tryParse parseInput)
@@ -13,7 +13,8 @@ solve (credit, items) = let (first : rest) = items
                             creditLeft = credit - first
                             i = findIndex ( (==) creditLeft) rest
                         in case i of
-                            Just idx -> (1, idx + 1 + 1) -- 1 because of first, 1 for 0-basedness
+                            -- Add 1 because of first, 1 for 0-basedness
+                            Just idx -> (1, toInteger idx + 1 + 1)
                             Nothing -> let (a, b) = solve (credit, rest)
                                        in (a + 1, b + 1)
 
