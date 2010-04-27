@@ -19,27 +19,40 @@ prefixes = [ "Case #" ++ show n ++ ": " | n <- [1..]]
 tryParse p input = either (error . show) id (parse p "" input)
 
 tests = runTestTT $ test [
-    cartesian [1, 7, 3] [1, 2] ~?= [(1, 1), (1, 2), (7, 1), (7, 2), (3, 1), (3, 2)],
-    (solve $ Case 1 [[0], [0]]) ~?= Solution (toRational 4)]
+    cartesian [[1, 7, 3], [1, 2]] ~?= [[1, 1], [1, 2], [7, 1], [7, 2], [3, 1], [3, 2]],
+    "trivial case" ~: (solve $ Case 1 [[0], [0]]) ~?= Solution (toRational 4),
+    occurences 1000 [[0]] ~?= [1000],
+    occurences 10 [[0, 20]] ~?= [10],
+    occurences 1 [[1, 2, 3, 4, 5]] ~?= [0],
+    occurences 1 [[0, 1, 2, 3, 4]] ~?= [1],
+    meetingOfK 100 [[0, 3, 7], []] 1 ~?= (meetingOfK 100 [[0, 3, 7]] 1) * 100,
+    occurences 100 [[0, 3, 7], [0, 2, 6]] ~?= occurences 100 [[0, 2, 6], [0, 3, 7]],
+    (solve $ Case 4 [[0,1,3], [0, 2]]) ~?= Solution (41%8)]
 
 solve :: Case -> Solution
 solve (Case year schedules) = Solution $ occurencesToHapiness year (occurences year schedules)
 
 occurences :: Integer -> [Schedule] -> [Integer]
-occurences year [schedule] = [occurencesOne year schedule]
-occurences year schedules@[s1, s2] = [singleOcc, twoOcc]
-    where singleOcc = (sum $ map (occurencesOne year) schedules) * year
-          twoOcc = (sum $ map (occurTogether year) (cartesian s1 s2))
-occurences year schedules = [-1]
+occurences year schedules = map (meetingOfK year schedules) [1..toInteger $ length schedules]
 
-cartesian a b = [(x, y) | x<-a, y<-b]
+meetingOfK :: Integer -> [Schedule] -> Integer -> Integer
+meetingOfK year schedules k = spaceFactor * occurencesInLenSchedDimensions
+    where spaceFactor = year^restOfDimensions
+          restOfDimensions = lenSched - k
+          lenSched = toInteger (length schedules)
+          occurencesInLenSchedDimensions =
+              if k == lenSched then
+                  sum $ map (occurence year) (cartesian schedules)
+              else
+                  sum $ map (\s -> meetingOfK year s k) (kplets k schedules)
 
-occurencesOne year schedule = sum $ map (occurence year) schedule
+cartesian :: [[Integer]] -> [[Integer]]
+cartesian [a] = [[x] | x <- a]
+cartesian [a, b] = [[x, y] | x<-a, y<-b]
 
-occurence year offset = max 0 (year - offset)
+kplets 1 [a,b] = [[a], [b]]
 
-occurTogether year (o1, o2) = occurence year combinedOffset
-    where combinedOffset = max o1 o2
+occurence year offsets = max 0 (year - maximum offsets)
 
 occurencesToHapiness :: Integer -> [Integer] -> Rational
 occurencesToHapiness year [one] = one % year
