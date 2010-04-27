@@ -53,6 +53,7 @@ cartesian [a] = [[x] | x <- a]
 cartesian [a, b] = [[x, y] | x<-a, y<-b]
 cartesian [a, b, c] = [[x, y, z] | x<-a, y<-b, z<-c]
 
+-- TODO: Real implementation
 kplets :: Integer -> [a] -> [[a]]
 kplets 1 list = cartesian [list]
 kplets 2 [a, b, c] = [[a, b], [a, c], [b, c]]
