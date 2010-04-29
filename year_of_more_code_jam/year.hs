@@ -24,13 +24,18 @@ meetingOfK year schedules k = spaceFactor * occurencesInLenSchedDimensions
               if k == lenSched then
                   sum $ map (occurence year) (sequence schedules)
               else
-                  sum $ map (\s -> meetingOfK year s k) (kplets k schedules)
+                  sum $ map (\s -> meetingOfK year s k) (combine schedules k)
 
--- TODO: Real implementation
-kplets :: Integer -> [a] -> [[a]]
-kplets 1 list = sequence [list]
-kplets 2 [a, b, c] = [[a, b], [a, c], [b, c]]
+combine _ r | r < 0	= error "Zero or more elements should be extracted."
+combine _ 0	= [[]]
+combine [] _ = []
+combine (x:xs) r = map (x:) (combine xs (r - 1)) ++ combine xs r
 
+ncr _ 0	= 1
+ncr 0 _ = 0
+ncr n r = ncr (n-1) (r-1) + ncr (n-1) r
+
+occurence year [o] = max 0 (year - o)
 occurence year offsets = max 0 (year - maximum offsets)
 
 correctOccurences :: [Integer] -> [Integer]
@@ -38,10 +43,9 @@ correctOccurences list = correct list 1
 
 correct :: [Integer] -> Integer -> [Integer]
 correct last@[_] _ = last
-correct (this : rest) k = (this - sum (zipWith (*) ks corrected) : corrected)
-    where ks = [k+1..]
-          corrected :: [Integer]
-          corrected = correct rest (k+1)
+correct (this : rest) k = (thisCorrected : restCorrected)
+    where thisCorrected = this - sum (zipWith (*) (map (`ncr` k) [k+1..]) restCorrected)
+          restCorrected = correct rest (k+1)
 
 occurencesToHapiness :: Integer -> [Integer] -> Rational
 occurencesToHapiness year list = (sum scores) % (year^listLen)

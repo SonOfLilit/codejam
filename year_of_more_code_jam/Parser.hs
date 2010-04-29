@@ -12,6 +12,7 @@ parseInput :: Parser [Case]
 parseInput = do
     n <- number
     cases <- count (read n) parseCase
+    optional br
     eof
     return cases
 
